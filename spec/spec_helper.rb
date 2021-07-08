@@ -3,7 +3,7 @@ def client
   (ENV['CLIENT'] || :active_record).to_sym
 end
 
-if !ENV['TRAVIS'] || (ENV['TRAVIS'] && ENV['QUALITY'] == 'true')
+if !ENV['CI'] || (ENV['CI'] && ENV['QUALITY'] == 'true')
   begin
     require './spec/support/simplecov_helper'
     include SimpleCovHelper
@@ -31,11 +31,6 @@ def redis?
   client == :redis
 end
 
-def mongoid?
-  client == :mongoid
-end
-
-require 'support/mongoid_setup' if mongoid?
 require 'support/active_record_setup' if active_record?
 
 RPUSH_ROOT = '/tmp/rails_root'
@@ -50,6 +45,8 @@ RPUSH_CLIENT = Rpush.config.client
 path = File.join(File.dirname(__FILE__), 'support')
 TEST_CERT = File.read(File.join(path, 'cert_without_password.pem'))
 TEST_CERT_WITH_PASSWORD = File.read(File.join(path, 'cert_with_password.pem'))
+
+VAPID_KEYPAIR = Webpush.generate_key.to_hash.merge(subject: 'rpush-test@example.org').to_json
 
 def after_example_cleanup
   Rpush.logger = nil

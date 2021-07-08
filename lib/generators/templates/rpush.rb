@@ -1,6 +1,6 @@
 Rpush.configure do |config|
 
-  # Supported clients are :active_record, :redis and :mongoid
+  # Supported clients are :active_record and :redis
   config.client = :active_record
 
   # Options passed to Redis.new
@@ -26,6 +26,10 @@ Rpush.configure do |config|
   # Define a custom logger.
   # config.logger = MyLogger.new
 
+  # By default in foreground mode logs are directed both to the logger and to stdout.
+  # If the logger goes to stdout, you can disable foreground logging to avoid duplication.
+  # config.foreground_logging = false
+
   # config.apns.feedback_receiver.enabled = true
   # config.apns.feedback_receiver.frequency = 60
 
@@ -42,10 +46,7 @@ Rpush.reflect do |on|
   # Called when a notification is queued internally for delivery.
   # The internal queue for each app runner can be inspected:
   #
-  # Rpush::Daemon::AppRunner.runners.each do |app_id, runner|
-  #   runner.app
-  #   runner.queue_size
-  # end
+  # Rpush::Daemon::AppRunner.status
   #
   # on.notification_enqueued do |notification|
   # end

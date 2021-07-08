@@ -1,4 +1,4 @@
-class CreateRapnsNotifications < ActiveRecord::Migration
+class CreateRapnsNotifications < ActiveRecord::Migration[5.0]
   def self.up
     create_table :rapns_notifications do |t|
       t.integer   :badge,                 null: true
@@ -21,9 +21,10 @@ class CreateRapnsNotifications < ActiveRecord::Migration
   end
 
   def self.down
-    if index_name_exists?(:rapns_notifications, 'index_rapns_notifications_multi', true)
+    if index_name_exists?(:rapns_notifications, 'index_rapns_notifications_multi')
       remove_index :rapns_notifications, name: 'index_rapns_notifications_multi'
     end
+
     drop_table :rapns_notifications
   end
 end

@@ -24,6 +24,8 @@ require 'rpush/daemon/dispatcher_loop'
 require 'rpush/daemon/dispatcher/http'
 require 'rpush/daemon/dispatcher/tcp'
 require 'rpush/daemon/dispatcher/apns_tcp'
+require 'rpush/daemon/dispatcher/apns_http2'
+require 'rpush/daemon/dispatcher/apnsp8_http2'
 require 'rpush/daemon/service_config_methods'
 require 'rpush/daemon/retry_header_parser'
 require 'rpush/daemon/ring_buffer'
@@ -40,6 +42,13 @@ require 'rpush/daemon/apns/delivery'
 require 'rpush/daemon/apns/feedback_receiver'
 require 'rpush/daemon/apns'
 
+require 'rpush/daemon/apns2/delivery'
+require 'rpush/daemon/apns2'
+
+require 'rpush/daemon/apnsp8/delivery'
+require 'rpush/daemon/apnsp8/token'
+require 'rpush/daemon/apnsp8'
+
 require 'rpush/daemon/gcm/delivery'
 require 'rpush/daemon/gcm'
 
@@ -55,6 +64,12 @@ require 'rpush/daemon/wns'
 
 require 'rpush/daemon/adm/delivery'
 require 'rpush/daemon/adm'
+
+require 'rpush/daemon/pushy'
+require 'rpush/daemon/pushy/delivery'
+
+require 'rpush/daemon/webpush/delivery'
+require 'rpush/daemon/webpush'
 
 module Rpush
   module Daemon
@@ -97,14 +112,12 @@ module Rpush
         Feeder.stop
         AppRunner.stop
         delete_pid_file
-        puts ANSI.green { '✔' } if Rpush.config.foreground
+        puts Rainbow('✔').red if Rpush.config.foreground && Rpush.config.foreground_logging
       end
     end
 
     def self.shutdown_lock
-      return @shutdown_lock if @shutdown_lock
-      @shutdown_lock = Mutex.new
-      @shutdown_lock
+      @shutdown_lock ||= Mutex.new
     end
 
     def self.common_init
@@ -158,7 +171,7 @@ module Rpush
       if Rpush::Daemon::AppRunner.app_ids.count == 0
         puts <<-EOS
 
-* #{ANSI.green { 'Is this your first time using Rpush?' }}
+* #{Rainbow('Is this your first time using Rpush?').green}
   You need to create an App before you can start using Rpush.
   Please refer to the documentation at https://github.com/rpush/rpush
 

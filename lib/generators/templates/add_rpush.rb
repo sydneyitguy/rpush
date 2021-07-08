@@ -19,7 +19,7 @@
 # approach. The constituent parts of this migration have been executed
 # many times, by many people!
 
-class AddRpush < ActiveRecord::Migration
+class AddRpush < ActiveRecord::Migration[5.0]
   def self.migrations
     [CreateRapnsNotifications, CreateRapnsFeedback,
      AddAlertIsJsonToRapnsNotifications, AddAppToRapns,
@@ -41,7 +41,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class CreateRapnsNotifications < ActiveRecord::Migration
+  class CreateRapnsNotifications < ActiveRecord::Migration[5.0]
     def self.up
       create_table :rapns_notifications do |t|
         t.integer   :badge,                 null: true
@@ -64,14 +64,15 @@ class AddRpush < ActiveRecord::Migration
     end
 
     def self.down
-      if index_name_exists?(:rapns_notifications, 'index_rapns_notifications_multi', true)
+      if index_name_exists?(:rapns_notifications, 'index_rapns_notifications_multi')
         remove_index :rapns_notifications, name: 'index_rapns_notifications_multi'
       end
+
       drop_table :rapns_notifications
     end
   end
 
-  class CreateRapnsFeedback < ActiveRecord::Migration
+  class CreateRapnsFeedback < ActiveRecord::Migration[5.0]
     def self.up
       create_table :rapns_feedback do |t|
         t.string    :device_token,          null: false, limit: 64
@@ -83,14 +84,15 @@ class AddRpush < ActiveRecord::Migration
     end
 
     def self.down
-      if index_name_exists?(:rapns_feedback, :index_rapns_feedback_on_device_token, true)
+      if index_name_exists?(:rapns_feedback, :index_rapns_feedback_on_device_token)
         remove_index :rapns_feedback, name: :index_rapns_feedback_on_device_token
       end
+
       drop_table :rapns_feedback
     end
   end
 
-  class AddAlertIsJsonToRapnsNotifications < ActiveRecord::Migration
+  class AddAlertIsJsonToRapnsNotifications < ActiveRecord::Migration[5.0]
     def self.up
       add_column :rapns_notifications, :alert_is_json, :boolean, null: true, default: false
     end
@@ -100,7 +102,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class AddAppToRapns < ActiveRecord::Migration
+  class AddAppToRapns < ActiveRecord::Migration[5.0]
     def self.up
       add_column :rapns_notifications, :app, :string, null: true
       add_column :rapns_feedback, :app, :string, null: true
@@ -112,7 +114,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class CreateRapnsApps < ActiveRecord::Migration
+  class CreateRapnsApps < ActiveRecord::Migration[5.0]
     def self.up
       create_table :rapns_apps do |t|
         t.string    :key,             null: false
@@ -129,7 +131,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class AddGcm < ActiveRecord::Migration
+  class AddGcm < ActiveRecord::Migration[5.0]
     module Rapns
       class App < ActiveRecord::Base
         self.table_name = 'rapns_apps'
@@ -150,8 +152,8 @@ class AddRpush < ActiveRecord::Migration
 
       change_column :rapns_notifications, :type, :string, null: false
       change_column :rapns_apps, :type, :string, null: false
-      change_column :rapns_notifications, :device_token, :string, { null: true, limit: 64 }
-      change_column :rapns_notifications, :expiry, :integer, { null: true, default: 1.day.to_i }
+      change_column :rapns_notifications, :device_token, :string, null: true, limit: 64
+      change_column :rapns_notifications, :expiry, :integer, null: true, default: 1.day.to_i
       change_column :rapns_apps, :environment, :string, null: true
       change_column :rapns_apps, :certificate, :text, null: true, default: nil
 
@@ -181,11 +183,12 @@ class AddRpush < ActiveRecord::Migration
       change_column :rapns_notifications, :app_id, :integer, null: false
       remove_column :rapns_notifications, :app
 
-      if index_name_exists?(:rapns_notifications, "index_rapns_notifications_multi", true)
+      if index_name_exists?(:rapns_notifications, "index_rapns_notifications_multi")
         remove_index :rapns_notifications, name: "index_rapns_notifications_multi"
-      elsif index_name_exists?(:rapns_notifications, "index_rapns_notifications_on_delivered_failed_deliver_after", false)
+      elsif index_name_exists?(:rapns_notifications, "index_rapns_notifications_on_delivered_failed_deliver_after")
         remove_index :rapns_notifications, name: "index_rapns_notifications_on_delivered_failed_deliver_after"
       end
+
       add_index :rapns_notifications, [:app_id, :delivered, :failed, :deliver_after], name: "index_rapns_notifications_multi"
     end
 
@@ -195,8 +198,8 @@ class AddRpush < ActiveRecord::Migration
       remove_column :rapns_notifications, :type
       remove_column :rapns_apps, :type
 
-      change_column :rapns_notifications, :device_token, :string, { null: false, limit: 64 }
-      change_column :rapns_notifications, :expiry, :integer, { null: false, default: 1.day.to_i }
+      change_column :rapns_notifications, :device_token, :string, null: false, limit: 64
+      change_column :rapns_notifications, :expiry, :integer, null: false, default: 1.day.to_i
       change_column :rapns_apps, :environment, :string, null: false
       change_column :rapns_apps, :certificate, :text, null: false
 
@@ -222,8 +225,8 @@ class AddRpush < ActiveRecord::Migration
         AddGcm::Rapns::Notification.where(app_id: app.id).update_all(app: app.key)
       end
 
-      if index_name_exists?(:rapns_notifications, :index_rapns_notifications_multi, true)
-          remove_index :rapns_notifications, name: :index_rapns_notifications_multi
+      if index_name_exists?(:rapns_notifications, :index_rapns_notifications_multi)
+        remove_index :rapns_notifications, name: :index_rapns_notifications_multi
       end
 
       remove_column :rapns_notifications, :app_id
@@ -232,7 +235,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class AddWpns < ActiveRecord::Migration
+  class AddWpns < ActiveRecord::Migration[5.0]
     module Rapns
       class Notification < ActiveRecord::Base
         self.table_name = 'rapns_notifications'
@@ -249,7 +252,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class AddAdm < ActiveRecord::Migration
+  class AddAdm < ActiveRecord::Migration[5.0]
     module Rapns
       class Notification < ActiveRecord::Base
         self.table_name = 'rapns_notifications'
@@ -273,7 +276,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class RenameRapnsToRpush < ActiveRecord::Migration
+  class RenameRapnsToRpush < ActiveRecord::Migration[5.0]
     module Rpush
       class App < ActiveRecord::Base
         self.table_name = 'rpush_apps'
@@ -293,11 +296,11 @@ class AddRpush < ActiveRecord::Migration
       rename_table :rapns_apps, :rpush_apps
       rename_table :rapns_feedback, :rpush_feedback
 
-      if index_name_exists?(:rpush_notifications, :index_rapns_notifications_multi, true)
+      if index_name_exists?(:rpush_notifications, :index_rapns_notifications_multi)
         rename_index :rpush_notifications, :index_rapns_notifications_multi, :index_rpush_notifications_multi
       end
 
-      if index_name_exists?(:rpush_feedback, :index_rapns_feedback_on_device_token, true)
+      if index_name_exists?(:rpush_feedback, :index_rapns_feedback_on_device_token)
         rename_index :rpush_feedback, :index_rapns_feedback_on_device_token, :index_rpush_feedback_on_device_token
       end
 
@@ -323,11 +326,11 @@ class AddRpush < ActiveRecord::Migration
       update_type(RenameRapnsToRpush::Rpush::App, 'Rpush::Adm::App', 'Rapns::Adm::App')
       update_type(RenameRapnsToRpush::Rpush::App, 'Rpush::Wpns::App', 'Rapns::Wpns::App')
 
-      if index_name_exists?(:rpush_notifications, :index_rpush_notifications_multi, true)
+      if index_name_exists?(:rpush_notifications, :index_rpush_notifications_multi)
         rename_index :rpush_notifications, :index_rpush_notifications_multi, :index_rapns_notifications_multi
       end
 
-      if index_name_exists?(:rpush_feedback, :index_rpush_feedback_on_device_token, true)
+      if index_name_exists?(:rpush_feedback, :index_rpush_feedback_on_device_token)
         rename_index :rpush_feedback, :index_rpush_feedback_on_device_token, :index_rapns_feedback_on_device_token
       end
 
@@ -337,7 +340,7 @@ class AddRpush < ActiveRecord::Migration
     end
   end
 
-  class AddFailAfterToRpushNotifications < ActiveRecord::Migration
+  class AddFailAfterToRpushNotifications < ActiveRecord::Migration[5.0]
     def self.up
       add_column :rpush_notifications, :fail_after, :timestamp, null: true
     end

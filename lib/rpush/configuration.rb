@@ -16,12 +16,11 @@ module Rpush
     end
   end
 
-  CURRENT_ATTRS = [:push_poll, :embedded, :pid_file, :batch_size, :push, :client, :logger, :log_file, :foreground, :log_level, :plugin, :apns]
+  CURRENT_ATTRS = [:push_poll, :embedded, :pid_file, :batch_size, :push, :client, :logger, :log_file, :foreground, :foreground_logging, :log_level, :plugin, :apns]
   DEPRECATED_ATTRS = []
   CONFIG_ATTRS = CURRENT_ATTRS + DEPRECATED_ATTRS
 
   class ConfigurationError < StandardError; end
-  class ConfigurationWithoutDefaults < Struct.new(*CONFIG_ATTRS); end # rubocop:disable Style/StructInheritance
 
   class ApnsFeedbackReceiverConfiguration < Struct.new(:frequency, :enabled) # rubocop:disable Style/StructInheritance
     def initialize
@@ -54,6 +53,7 @@ module Rpush
       self.log_level = (defined?(Rails) && Rails.logger) ? Rails.logger.level : ::Logger::Severity::DEBUG
       self.plugin = OpenStruct.new
       self.foreground = false
+      self.foreground_logging = true
 
       self.apns = ApnsConfiguration.new
 
@@ -106,7 +106,7 @@ module Rpush
       client_module = Rpush::Client.const_get(client.to_s.camelize)
       Rpush.send(:include, client_module) unless Rpush.ancestors.include?(client_module)
 
-      [:Apns, :Gcm, :Wpns, :Wns, :Adm].each do |service|
+      [:Apns, :Gcm, :Wpns, :Wns, :Adm, :Pushy, :Webpush].each do |service|
         Rpush.const_set(service, client_module.const_get(service)) unless Rpush.const_defined?(service)
       end
 

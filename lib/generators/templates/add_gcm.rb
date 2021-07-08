@@ -1,4 +1,4 @@
-class AddGcm < ActiveRecord::Migration
+class AddGcm < ActiveRecord::Migration[5.0]
   module Rapns
     class App < ActiveRecord::Base
       self.table_name = 'rapns_apps'
@@ -19,8 +19,8 @@ class AddGcm < ActiveRecord::Migration
 
     change_column :rapns_notifications, :type, :string, null: false
     change_column :rapns_apps, :type, :string, null: false
-    change_column :rapns_notifications, :device_token, :string, { null: true, limit: 64 }
-    change_column :rapns_notifications, :expiry, :integer, { null: true, default: 1.day.to_i }
+    change_column :rapns_notifications, :device_token, :string, null: true, limit: 64
+    change_column :rapns_notifications, :expiry, :integer, null: true, default: 1.day.to_i
     change_column :rapns_apps, :environment, :string, null: true
     change_column :rapns_apps, :certificate, :text, null: true, default: nil
 
@@ -50,11 +50,12 @@ class AddGcm < ActiveRecord::Migration
     change_column :rapns_notifications, :app_id, :integer, null: false
     remove_column :rapns_notifications, :app
 
-    if index_name_exists?(:rapns_notifications, "index_rapns_notifications_multi", true)
+    if index_name_exists?(:rapns_notifications, "index_rapns_notifications_multi")
       remove_index :rapns_notifications, name: "index_rapns_notifications_multi"
-    elsif index_name_exists?(:rapns_notifications, "index_rapns_notifications_on_delivered_failed_deliver_after", false)
+    elsif index_name_exists?(:rapns_notifications, "index_rapns_notifications_on_delivered_failed_deliver_after")
       remove_index :rapns_notifications, name: "index_rapns_notifications_on_delivered_failed_deliver_after"
     end
+
     add_index :rapns_notifications, [:app_id, :delivered, :failed, :deliver_after], name: "index_rapns_notifications_multi"
   end
 
@@ -64,8 +65,8 @@ class AddGcm < ActiveRecord::Migration
     remove_column :rapns_notifications, :type
     remove_column :rapns_apps, :type
 
-    change_column :rapns_notifications, :device_token, :string, { null: false, limit: 64 }
-    change_column :rapns_notifications, :expiry, :integer, { null: false, default: 1.day.to_i }
+    change_column :rapns_notifications, :device_token, :string, null: false, limit: 64
+    change_column :rapns_notifications, :expiry, :integer, null: false, default: 1.day.to_i
     change_column :rapns_apps, :environment, :string, null: false
     change_column :rapns_apps, :certificate, :text, null: false
 
@@ -91,7 +92,7 @@ class AddGcm < ActiveRecord::Migration
       AddGcm::Rapns::Notification.update_all(['app = ?', app.key], ['app_id = ?', app.id])
     end
 
-    if index_name_exists?(:rapns_notifications, :index_rapns_notifications_multi, true)
+    if index_name_exists?(:rapns_notifications, :index_rapns_notifications_multi)
       remove_index :rapns_notifications, name: :index_rapns_notifications_multi
     end
 
